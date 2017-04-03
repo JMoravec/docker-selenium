@@ -34,10 +34,15 @@ fi
 SERVERNUM=$(get_server_num)
 
 rm -f /tmp/.X*lock
+mkdir -p /tmp/screen
 
-xvfb-run -n $SERVERNUM --server-args="-screen 0 $GEOMETRY -ac +extension RANDR" \
-  java ${JAVA_OPTS} -jar /opt/selenium/selenium-server-standalone.jar \
-    -role node \
+#xvfb-run -a -n $SERVERNUM --server-args="-screen 0 $GEOMETRY -ac +extension RANDR -wr" \
+xvfb-run -a -n $SERVERNUM -w 5 --server-args="-screen 0 $GEOMETRY -ac +extension RANDR -fbdir /tmp/screen -wr" \
+  java -Dvideo.xvfbscreen=/tmp/screen ${JAVA_OPTS} -cp /opt/selenium/selenium-video-node.jar:/opt/selenium/selenium-server-standalone.jar \
+    org.openqa.grid.selenium.GridLauncherV3 \
+    -servlets com.aimmac23.node.servlet.VideoRecordingControlServlet \
+    -proxy com.aimmac23.hub.proxy.VideoProxy \
+    -role wd \
     -hub http://$HUB_PORT_4444_TCP_ADDR:$HUB_PORT_4444_TCP_PORT/grid/register \
     -nodeConfig /opt/selenium/config.json \
     ${SE_OPTS} &
